@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\admin\adminController;
+use App\Http\Controllers\admin\categoryController;
+use App\Http\Controllers\admin\homeController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,5 +23,42 @@ Route::get('/', function () {
 });
 
 
-Route::get('admin/login',[adminController::class , 'login'])->name('admin.login');
-Route::get('admin/authentication',[adminController::class , 'authentication'])->name('admin.authentication');
+
+
+Route::group(['prefix' => 'admin'],function(){
+
+    Route::group(['middleware' => 'admin.guest'],function(){
+        Route::get('login',[adminController::class , 'login'])->name('admin.login');
+        Route::POST('authentication',[adminController::class , 'authentication'])->name('admin.authentication');
+        
+    });
+    
+    
+    Route::group(['middleware' => 'admin.auth'],function(){
+        Route::get('dashboard',[homeController::class , 'dashboard'])->name('admin.dashboard');
+        Route::get('logout',[homeController::class , 'logout'])->name('admin.logout');
+        Route::get('create-category',[categoryController::class , 'create'])->name('category.create');
+        Route::POST('store-category',[categoryController::class , 'store'])->name('category.store');
+        Route::get('list-category',[categoryController::class , 'show'])->name('category.list');
+
+
+
+        // route for slug
+
+        Route::get('/getslug',function(Request $request){
+            $slug = '';
+            if(!empty($request->title)){
+                $slug = Str::slug($request->title);
+            }
+            return response()->json([
+                'status' => true,
+                'slug' => $slug
+            ]);
+        })->name('getslug');
+
+
+        
+    });
+
+
+});
